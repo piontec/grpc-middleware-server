@@ -38,6 +38,7 @@ type GrpcServerOptions struct {
 	LogHealthCheckCalls     bool
 	DisableHistogramMetrics bool
 	logger                  *logrus.Logger
+	additionalOptions		[]grpc.ServerOption
 }
 
 func (o *GrpcServerOptions) fillDefaults(logger *logrus.Logger) {
@@ -126,7 +127,7 @@ func NewGrpcServer(servicesRegistrationHandler func(*grpc.Server), options *Grpc
 		logrusEntry.WithFields(options.LoggerFields)
 	}
 
-	server := grpc.NewServer(
+	serverOptions := []grpc.ServerOption {
 		grpc_middleware.WithUnaryServerChain(
 			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
 			grpc_log_logrus.UnaryServerInterceptor(logrusEntry, opts...),
@@ -141,7 +142,11 @@ func NewGrpcServer(servicesRegistrationHandler func(*grpc.Server), options *Grpc
 			grpc_auth.StreamServerInterceptor(options.AuthHandler),
 			grpc_prom.StreamServerInterceptor,
 		),
-	)
+	}
+	if len(options.additionalOptions) > 0 {
+		serverOptions = append(serverOptions, options.additionalOptions...)
+	}
+	server := grpc.NewServer(serverOptions...)
 
 	// register healthcheck gRPC service
 	healthCheck := healthcheck.NewSimpleHealthServer(0)

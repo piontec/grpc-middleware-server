@@ -14,6 +14,10 @@ The stack includes the following:
 - automatic panic recovery with option to provide custom recovery function
 - authentication support with user provided custom function
 
+## The same, but for HTTP
+
+I created a similar starter setup for HTTP servers [over here](https://github.com/piontec/go-chi-middleware-server).
+
 ## Examples
 
 Writing a simple server, that just offers the Health Check endpoint, uses default authentication and recovery functions and provides prometheus monitoring is as simple as:
@@ -54,6 +58,7 @@ server := NewGrpcServer(func(server *grpc.Server) {
         LoggerFields: map[string]interface{}{"ver": "v0.1.0"}, // map of additional fields added to each log message
         LogHealthCheckCalls: true, // by default false - calls to HealthCheck are not logged
         DisableHistogramMetrics: true, // by default false - disables per method execution time histograms, which are costly
+        additionalOptions: []grpc.ServerOption, // any additional options to pass to grpc.NewServer(...) call
     }
 )
 ```
